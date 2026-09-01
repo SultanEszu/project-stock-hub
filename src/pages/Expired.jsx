@@ -1,29 +1,61 @@
-import { barangData } from "../data/dummydata";
+import { barangData } from "../data/dummyData";
 
 function Expired() {
-  const barangDenganExpired = barangData.filter(
-    (barang) => barang.expiredDate
-  );
+  const hariIni = new Date();
 
-  const hitungHari = (tanggal) => {
-    const sekarang = new Date();
-    const expired = new Date(tanggal);
+  const getStatusExpired = (tanggal) => {
+    if (!tanggal) {
+      return { text: "Tidak Ada Tanggal", className: "neutral" };
+    }
 
-    const selisih = expired - sekarang;
+    const tanggalExpired = new Date(tanggal);
+    const selisihWaktu = tanggalExpired.getTime() - hariIni.getTime();
+    const selisihHari = Math.ceil(selisihWaktu / (1000 * 60 * 60 * 24));
 
-    return Math.ceil(
-      selisih / (1000 * 60 * 60 * 24)
-    );
+    if (selisihHari < 0) {
+      return { text: "Sudah Expired", className: "danger" };
+    }
+
+    if (selisihHari <= 30) {
+      return { text: `Expired ${selisihHari} hari lagi`, className: "warning" };
+    }
+
+    return { text: "Masih Aman", className: "success" };
   };
+
+  const barangDenganExpired = barangData.filter((item) => item.expiredDate);
 
   return (
     <div className="page">
       <div className="page-header">
         <div>
-          <h2>Expired Date Tracker 📅</h2>
-          <p>
-            Pantau barang berdasarkan tanggal kedaluwarsa.
-          </p>
+          <h2>Expired Date Tracker</h2>
+          <p>Pantau tanggal kedaluwarsa barang di gudang.</p>
+        </div>
+      </div>
+
+      <div className="stats-grid">
+        <div className="stat-card">
+          <div>
+            <p>Total Produk</p>
+            <h3>{barangDenganExpired.length}</h3>
+            <span>Memiliki tanggal expired</span>
+          </div>
+          <div className="stat-icon">📅</div>
+        </div>
+
+        <div className="stat-card">
+          <div>
+            <p>Segera Expired</p>
+            <h3>
+              {barangDenganExpired.filter((item) => {
+                const status = getStatusExpired(item.expiredDate);
+                return status.className === "warning" || status.className === "danger";
+              }).length}
+            </h3>
+            <span>Dalam 30 hari</span>
+          </div>
+          <div className="stat-icon">⚠️</div>
         </div>
       </div>
 
@@ -35,45 +67,19 @@ function Expired() {
                 <th>Kode</th>
                 <th>Barang</th>
                 <th>Expired Date</th>
-                <th>Sisa Hari</th>
                 <th>Status</th>
               </tr>
             </thead>
-
             <tbody>
               {barangDenganExpired.map((barang) => {
-                const sisaHari = hitungHari(
-                  barang.expiredDate
-                );
-
-                let status = "Aman";
-                let className = "success";
-
-                if (sisaHari <= 0) {
-                  status = "Expired";
-                  className = "danger";
-                } else if (sisaHari <= 7) {
-                  status = "Segera Expired";
-                  className = "danger";
-                } else if (sisaHari <= 30) {
-                  status = "Perhatian";
-                  className = "warning";
-                }
-
+                const status = getStatusExpired(barang.expiredDate);
                 return (
                   <tr key={barang.id}>
                     <td>{barang.kode}</td>
                     <td>{barang.nama}</td>
                     <td>{barang.expiredDate}</td>
                     <td>
-                      {sisaHari <= 0
-                        ? "Sudah lewat"
-                        : `${sisaHari} hari`}
-                    </td>
-                    <td>
-                      <span className={`badge ${className}`}>
-                        {status}
-                      </span>
+                      <span className={`badge ${status.className}`}>{status.text}</span>
                     </td>
                   </tr>
                 );
@@ -86,4 +92,4 @@ function Expired() {
   );
 }
 
-export default Expired; 
+export default Expired;
