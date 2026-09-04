@@ -9,10 +9,17 @@ import Kategori from "./pages/kategori";
 import LowStock from "./pages/LowStock";
 import Expired from "./pages/expired";
 import Supplier from "./pages/supplier";
+import Login from "./components/Login";
+import { useAuth } from "./context/AuthContext";
 
 function App() {
+  const { user } = useAuth();
   const [halamanAktif, setHalamanAktif] =
     useState("Dashboard");
+
+  if (!user) {
+    return <Login />;
+  }
 
   const tampilkanHalaman = () => {
     switch (halamanAktif) {

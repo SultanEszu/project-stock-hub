@@ -1,4 +1,8 @@
-function Header({halamanAktif}) {
+import { useAuth } from "../context/AuthContext";
+
+function Header({ halamanAktif }) {
+    const { user, logout } = useAuth();
+
     return (
         <header className="header">
             <div>
@@ -6,12 +10,13 @@ function Header({halamanAktif}) {
                 <p>Kelola Persediaan Barang Dengan Mudah</p>
             </div>
             <div className="header-user">
-                <div className="user-avatar">A</div>
+                <div className="user-avatar">{user.nama.charAt(0)}</div>
 
                 <div>
-                    <strong>Admin</strong>
-                    <span>Administrator</span>
+                    <strong>{user.nama}</strong>
+                    <span>{user.role === "admin" ? "Administrator" : "Bos"}</span>
                 </div>
+                <button className="logout-button" onClick={logout}>Keluar</button>
             </div>
         </header>
     );

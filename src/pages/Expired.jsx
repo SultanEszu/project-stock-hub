@@ -1,6 +1,7 @@
-import { barangData } from "../data/dummyData";
+import { useStock } from "../context/StockContext";
 
 function Expired() {
+  const { barang } = useStock();
   const hariIni = new Date();
 
   const getStatusExpired = (tanggal) => {
@@ -23,7 +24,7 @@ function Expired() {
     return { text: "Masih Aman", className: "success" };
   };
 
-  const barangDenganExpired = barangData.filter((item) => item.expiredDate);
+  const barangDenganExpired = barang.filter((item) => item.expiredDate);
 
   return (
     <div className="page">

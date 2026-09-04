@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useStock } from "../context/StockContext";
+import { useAuth } from "../context/AuthContext";
 
 const defaultForm = {
   kode: "",
@@ -69,7 +70,8 @@ function Barang() {
     Data barang sekarang berasal dari StockContext.
     Jadi data tidak lagi hanya tersimpan di halaman Barang.
   */
-  const { barang, setBarang } = useStock();
+  const { barang, loading, addBarang, updateBarang, removeBarang } = useStock();
+  const { isAdmin } = useAuth();
 
   const [search, setSearch] = useState("");
   const [filterKategori, setFilterKategori] = useState("");
@@ -104,12 +106,10 @@ function Barang() {
   /*
     Tambah / Edit barang
   */
-  const simpanBarang = (e) => {
+  const simpanBarang = async (e) => {
     e.preventDefault();
 
     const dataBarang = {
-      id: editId ?? Date.now(),
-
       kode: form.kode,
       nama: form.nama,
       kategori: form.kategori,
@@ -133,27 +133,16 @@ function Barang() {
       hargaJual: 5000,
     };
 
-    /*
-      Jika sedang edit
-    */
-    if (editId !== null) {
-      setBarang((prev) =>
-        prev.map((item) =>
-          item.id === editId
-            ? dataBarang
-            : item
-        )
-      );
-    }
-
-    /*
-      Jika menambah barang baru
-    */
-    else {
-      setBarang((prev) => [
-        ...prev,
-        dataBarang,
-      ]);
+    try {
+      if (editId !== null) {
+        await updateBarang(editId, dataBarang);
+      } else {
+        await addBarang(dataBarang);
+      }
+    } catch (error) {
+      console.error("Gagal menyimpan barang:", error);
+      window.alert("Gagal menyimpan barang ke MySQL.");
+      return;
     }
 
     resetForm();
@@ -184,17 +173,18 @@ function Barang() {
   /*
     Menghapus barang
   */
-  const hapusBarang = (id) => {
+  const hapusBarang = async (id) => {
     const yakin = window.confirm(
       "Apakah kamu yakin ingin menghapus barang ini?"
     );
 
-    if (yakin) {
-      setBarang((prev) =>
-        prev.filter(
-          (item) => item.id !== id
-        )
-      );
+    if (!yakin) return;
+
+    try {
+      await removeBarang(id);
+    } catch (error) {
+      console.error("Gagal menghapus barang:", error);
+      window.alert("Gagal menghapus barang dari MySQL.");
     }
   };
 
@@ -279,6 +269,10 @@ function Barang() {
     };
   }, [barang]);
 
+  if (loading) {
+    return <div className="page"><div className="panel"><p>Memuat data barang dari MySQL...</p></div></div>;
+  }
+
   return (
     <div className="page">
 
@@ -296,7 +290,7 @@ function Barang() {
           </p>
         </div>
 
-        <button
+        {isAdmin && <button
           className="primary-button"
           onClick={() => {
             if (showForm) {
@@ -309,7 +303,7 @@ function Barang() {
           {showForm
             ? "Tutup Form"
             : "+ Tambah Barang"}
-        </button>
+        </button>}
 
       </div>
 
@@ -606,23 +600,23 @@ function Barang() {
 
             <div className="form-actions">
 
-              <button
+                      {isAdmin && <button
                 type="submit"
                 className="primary-button"
               >
                 {editId !== null
                   ? "Simpan Perubahan"
                   : "Simpan Barang"}
-              </button>
+                      </button>}
 
 
-              <button
+                      {isAdmin && <button
                 type="button"
                 className="cancel-button"
                 onClick={resetForm}
               >
                 Batal
-              </button>
+                      </button>}
 
             </div>
 

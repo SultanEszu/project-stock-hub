@@ -1,8 +1,10 @@
 import { useMemo, useState } from "react";
-import { kategoriData } from "../data/dummyData";
+import { useStock } from "../context/StockContext";
+import { useAuth } from "../context/AuthContext";
 
 function Kategori() {
-  const [kategori, setKategori] = useState(kategoriData);
+  const { kategori, loading, addKategori, updateKategori, removeKategori } = useStock();
+  const { isAdmin } = useAuth();
   const [namaKategori, setNamaKategori] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -26,19 +28,21 @@ function Kategori() {
     setShowForm(false);
   };
 
-  const simpanKategori = (e) => {
+  const simpanKategori = async (e) => {
     e.preventDefault();
     const namaTerformat = namaKategori.trim();
     if (!namaTerformat) return;
 
-    if (editId !== null) {
-      setKategori((prev) =>
-        prev.map((item) =>
-          item.id === editId ? { ...item, nama: namaTerformat } : item
-        )
-      );
-    } else {
-      setKategori((prev) => [...prev, { id: Date.now(), nama: namaTerformat }]);
+    try {
+      if (editId !== null) {
+        await updateKategori(editId, { nama: namaTerformat });
+      } else {
+        await addKategori({ nama: namaTerformat });
+      }
+    } catch (error) {
+      console.error("Gagal menyimpan kategori:", error);
+      window.alert("Gagal menyimpan kategori ke MySQL.");
+      return;
     }
 
     resetForm();
@@ -50,9 +54,16 @@ function Kategori() {
     setShowForm(true);
   };
 
-  const hapusKategori = (id) => {
+  const hapusKategori = async (id) => {
     const konfirmasi = window.confirm("Apakah Anda yakin ingin menghapus kategori ini?");
-    if (konfirmasi) setKategori((prev) => prev.filter((item) => item.id !== id));
+    if (!konfirmasi) return;
+
+    try {
+      await removeKategori(id);
+    } catch (error) {
+      console.error("Gagal menghapus kategori:", error);
+      window.alert("Gagal menghapus kategori dari MySQL.");
+    }
   };
 
   const toggleForm = () => {
@@ -63,6 +74,10 @@ function Kategori() {
     setShowForm(true);
   };
 
+  if (loading) {
+    return <div className="page"><div className="panel"><p>Memuat data kategori dari MySQL...</p></div></div>;
+  }
+
   return (
     <div className="page">
       <div className="page-header">
@@ -71,9 +86,9 @@ function Kategori() {
           <p>Kelola klasifikasi barang berdasarkan kebutuhan operasional gudang.</p>
         </div>
 
-        <button className="primary-button" onClick={toggleForm}>
+        {isAdmin && <button className="primary-button" onClick={toggleForm}>
           {showForm ? "Tutup Form" : "+ Tambah Kategori"}
-        </button>
+        </button>}
       </div>
 
       <div className="stats-grid">
@@ -136,8 +151,10 @@ function Kategori() {
               <p>Kelompok produk</p>
             </div>
             <div className="category-actions">
-              <button className="edit-button" onClick={() => editKategori(item)}>Edit</button>
-              <button className="delete-button" onClick={() => hapusKategori(item.id)}>Hapus</button>
+              {isAdmin && <>
+                <button className="edit-button" onClick={() => editKategori(item)}>Edit</button>
+                <button className="delete-button" onClick={() => hapusKategori(item.id)}>Hapus</button>
+              </>}
             </div>
           </div>
         ))}

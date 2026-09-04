@@ -1,8 +1,11 @@
-import { barangData } from "../data/dummyData";
+import { useStock } from "../context/StockContext";
 
 function LowStock() {
-  const barangMenipis = barangData.filter(
-    (item) => Number(item.stok) < Number(item.minimumStok)
+  const { barang } = useStock();
+
+  const barangMenipis = barang.filter(
+    (item) =>
+      Number(item.stok) < Number(item.minimumStok)
   );
 
   return (
@@ -20,6 +23,7 @@ function LowStock() {
             <p>Barang Menipis</p>
             <h3>{barangMenipis.length}</h3>
           </div>
+
           <div className="stat-icon">⚠️</div>
         </div>
       </div>
@@ -42,21 +46,37 @@ function LowStock() {
                 <th>Status</th>
               </tr>
             </thead>
+
             <tbody>
               {barangMenipis.map((item) => (
                 <tr key={item.id}>
                   <td>{item.kode}</td>
+
                   <td>{item.nama}</td>
+
                   <td>{item.kategori}</td>
-                  <td>{item.stok} {item.satuan}</td>
-                  <td>{item.minimumStok} {item.satuan}</td>
-                  <td><span className="badge warning">⚠ Stok Menipis</span></td>
+
+                  <td>
+                    {item.stok} {item.satuan}
+                  </td>
+
+                  <td>
+                    {item.minimumStok} {item.satuan}
+                  </td>
+
+                  <td>
+                    <span className="badge warning">
+                      ⚠ Stok Menipis
+                    </span>
+                  </td>
                 </tr>
               ))}
 
               {barangMenipis.length === 0 && (
                 <tr>
-                  <td colSpan="6" className="empty">Semua stok barang masih aman.</td>
+                  <td colSpan="6" className="empty">
+                    Semua stok barang masih aman.
+                  </td>
                 </tr>
               )}
             </tbody>

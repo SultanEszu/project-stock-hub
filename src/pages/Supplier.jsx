@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { supplierData } from "../data/dummyData";
+import { useStock } from "../context/StockContext";
+import { useAuth } from "../context/AuthContext";
 
 const formAwal = {
   nama: "",
@@ -9,7 +10,8 @@ const formAwal = {
 };
 
 function Supplier() {
-  const [supplier, setSupplier] = useState(supplierData);
+  const { supplier, loading, addSupplier, updateSupplier, removeSupplier } = useStock();
+  const { isAdmin } = useAuth();
   const [form, setForm] = useState(formAwal);
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -35,7 +37,7 @@ function Supplier() {
     setShowForm(false);
   };
 
-  const simpanSupplier = (e) => {
+  const simpanSupplier = async (e) => {
     e.preventDefault();
 
     const dataBaru = {
@@ -49,20 +51,16 @@ function Supplier() {
       return;
     }
 
-    if (editId !== null) {
-      setSupplier((prev) =>
-        prev.map((item) =>
-          item.id === editId ? { ...item, ...dataBaru } : item
-        )
-      );
-    } else {
-      setSupplier((prev) => [
-        ...prev,
-        {
-          id: Date.now(),
-          ...dataBaru,
-        },
-      ]);
+    try {
+      if (editId !== null) {
+        await updateSupplier(editId, dataBaru);
+      } else {
+        await addSupplier(dataBaru);
+      }
+    } catch (error) {
+      console.error("Gagal menyimpan supplier:", error);
+      window.alert("Gagal menyimpan supplier ke MySQL.");
+      return;
     }
 
     resetForm();
@@ -79,10 +77,15 @@ function Supplier() {
     setShowForm(true);
   };
 
-  const hapusSupplier = (id) => {
+  const hapusSupplier = async (id) => {
     const yakin = window.confirm("Apakah Anda yakin ingin menghapus supplier ini?");
-    if (yakin) {
-      setSupplier((prev) => prev.filter((item) => item.id !== id));
+    if (!yakin) return;
+
+    try {
+      await removeSupplier(id);
+    } catch (error) {
+      console.error("Gagal menghapus supplier:", error);
+      window.alert("Gagal menghapus supplier dari MySQL.");
     }
   };
 
@@ -94,6 +97,10 @@ function Supplier() {
     setShowForm(true);
   };
 
+  if (loading) {
+    return <div className="page"><div className="panel"><p>Memuat data supplier dari MySQL...</p></div></div>;
+  }
+
   return (
     <div className="page">
       <div className="page-header">
@@ -102,9 +109,9 @@ function Supplier() {
           <p>Kelola mitra pemasok untuk menunjang kelancaran distribusi stok.</p>
         </div>
 
-        <button className="primary-button" onClick={toggleForm}>
+        {isAdmin && <button className="primary-button" onClick={toggleForm}>
           {showForm ? "Tutup Form" : "+ Tambah Supplier"}
-        </button>
+        </button>}
       </div>
 
       <div className="stats-grid">
@@ -187,8 +194,10 @@ function Supplier() {
                   <td>{item.telepon}</td>
                   <td>{item.email}</td>
                   <td>
-                    <button className="edit-button" onClick={() => editSupplier(item)}>Edit</button>
-                    <button className="delete-button" onClick={() => hapusSupplier(item.id)}>Hapus</button>
+                    {isAdmin && <>
+                      <button className="edit-button" onClick={() => editSupplier(item)}>Edit</button>
+                      <button className="delete-button" onClick={() => hapusSupplier(item.id)}>Hapus</button>
+                    </>}
                   </td>
                 </tr>
               ))}

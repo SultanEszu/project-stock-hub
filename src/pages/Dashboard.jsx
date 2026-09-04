@@ -1,14 +1,20 @@
-import { barangData, kategoriData } from "../data/dummyData";
+import { useStock } from "../context/StockContext";
 
 function Dashboard() {
-  const totalBarang = barangData.length;
-  const totalStok = barangData.reduce(
+  const { barang, kategori } = useStock();
+
+  const totalBarang = barang.length;
+
+  const totalStok = barang.reduce(
     (total, item) => total + Number(item.stok),
     0
   );
-  const totalKategori = kategoriData.length;
-  const barangMenipis = barangData.filter(
-    (item) => Number(item.stok) < Number(item.minimumStok)
+
+  const totalKategori = kategori.length;
+
+  const barangMenipis = barang.filter(
+    (item) =>
+      Number(item.stok) < Number(item.minimumStok)
   ).length;
 
   return (
@@ -27,6 +33,7 @@ function Dashboard() {
             <h3>{totalBarang}</h3>
             <span>Jenis barang</span>
           </div>
+
           <div className="stat-icon">📦</div>
         </div>
 
@@ -36,6 +43,7 @@ function Dashboard() {
             <h3>{totalStok}</h3>
             <span>Semua barang</span>
           </div>
+
           <div className="stat-icon">📊</div>
         </div>
 
@@ -45,6 +53,7 @@ function Dashboard() {
             <h3>{totalKategori}</h3>
             <span>Kategori produk</span>
           </div>
+
           <div className="stat-icon">🏷️</div>
         </div>
 
@@ -54,6 +63,7 @@ function Dashboard() {
             <h3>{barangMenipis}</h3>
             <span>Perlu restock</span>
           </div>
+
           <div className="stat-icon">⚠️</div>
         </div>
       </div>
@@ -77,25 +87,42 @@ function Dashboard() {
             </thead>
 
             <tbody>
-              {barangData.map((item) => (
+              {barang.map((item) => (
                 <tr key={item.id}>
                   <td>{item.kode}</td>
+
                   <td>{item.nama}</td>
+
                   <td>
                     {item.stok} {item.satuan}
                   </td>
+
                   <td>
                     {item.minimumStok} {item.satuan}
                   </td>
+
                   <td>
-                    {Number(item.stok) < Number(item.minimumStok) ? (
-                      <span className="badge warning">⚠ Menipis</span>
+                    {Number(item.stok) <
+                    Number(item.minimumStok) ? (
+                      <span className="badge warning">
+                        ⚠ Menipis
+                      </span>
                     ) : (
-                      <span className="badge success">✓ Aman</span>
+                      <span className="badge success">
+                        ✓ Aman
+                      </span>
                     )}
                   </td>
                 </tr>
               ))}
+
+              {barang.length === 0 && (
+                <tr>
+                  <td colSpan="5" className="empty">
+                    Belum ada data barang.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
