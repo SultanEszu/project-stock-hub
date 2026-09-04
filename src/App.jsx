@@ -3,12 +3,12 @@ import "./App.css";
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
 
-import Dashboard from "./pages/dashboard";
-import Barang from "./pages/barang";
-import Kategori from "./pages/kategori";
+import Dashboard from "./pages/Dashboard";
+import Barang from "./pages/Barang";
+import Kategori from "./pages/Kategori";
 import LowStock from "./pages/LowStock";
-import Expired from "./pages/expired";
-import Supplier from "./pages/supplier";
+import Expired from "./pages/Expired";
+import Supplier from "./pages/Supplier";
 import Login from "./components/Login";
 import { useAuth } from "./context/AuthContext";
 
