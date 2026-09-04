@@ -1,19 +1,67 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 dotenv.config();
 
 const app = express();
+const isProduction = process.env.NODE_ENV === 'production';
 const port = Number(process.env.PORT || 3001);
 const dbName = process.env.DB_NAME || 'stockhub';
-const jwtSecret = process.env.JWT_SECRET || 'stockhub-dev-secret-change-me';
+const jwtSecret = process.env.JWT_SECRET || (isProduction ? '' : 'stockhub-dev-secret-change-me');
+const allowedOrigins = (process.env.CORS_ORIGIN || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
-app.use(cors());
+if (isProduction) {
+  const requiredVariables = [
+    'JWT_SECRET',
+    'DB_HOST',
+    'DB_USER',
+    'DB_PASSWORD',
+    'DB_NAME',
+    'CORS_ORIGIN',
+    'ADMIN_USERNAME',
+    'ADMIN_PASSWORD',
+    'BOS_USERNAME',
+    'BOS_PASSWORD',
+  ];
+  const missingVariables = requiredVariables.filter((name) => !process.env[name]);
+
+  if (missingVariables.length > 0) {
+    throw new Error(`Environment production belum lengkap: ${missingVariables.join(', ')}`);
+  }
+}
+
+const currentDirectory = path.dirname(fileURLToPath(import.meta.url));
+const frontendDirectory = path.join(currentDirectory, '..', 'dist');
+
+function errorDetails(error) {
+  return isProduction ? undefined : error.message;
+}
+
+app.disable('x-powered-by');
+app.use(helmet());
+app.use(cors({
+  origin: allowedOrigins.length > 0 ? allowedOrigins : true,
+}));
 app.use(express.json());
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: { message: 'Terlalu banyak percobaan login. Coba lagi nanti.' },
+});
 
 const baseDbConfig = {
   host: process.env.DB_HOST || 'localhost',
@@ -122,13 +170,13 @@ async function ensureDatabase() {
         username: process.env.ADMIN_USERNAME || 'admin',
         nama: 'Administrator',
         role: 'admin',
-        password: process.env.ADMIN_PASSWORD || 'admin123',
+        password: process.env.ADMIN_PASSWORD || (isProduction ? '' : 'admin123'),
       },
       {
         username: process.env.BOS_USERNAME || 'bos',
         nama: 'Bos',
         role: 'bos',
-        password: process.env.BOS_PASSWORD || 'bos123',
+        password: process.env.BOS_PASSWORD || (isProduction ? '' : 'bos123'),
       },
     ];
 
@@ -298,7 +346,7 @@ app.get('/health', (_, res) => {
   res.json({ status: 'ok', database: dbName });
 });
 
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', loginLimiter, async (req, res) => {
   try {
     const username = String(req.body?.username || '').trim();
     const password = String(req.body?.password || '');
@@ -320,7 +368,7 @@ app.post('/api/auth/login', async (req, res) => {
     };
     return res.json({ token: createToken(publicUser), user: publicUser });
   } catch (error) {
-    return res.status(500).json({ message: 'Login gagal.', error: error.message });
+    return res.status(500).json({ message: 'Login gagal.', error: errorDetails(error) });
   }
 });
 
@@ -332,7 +380,7 @@ app.get('/api/:resource', authenticate, async (req, res) => {
   } catch (error) {
     res.status(500).json({
       message: 'Gagal mengambil data dari database.',
-      error: error.message,
+      error: errorDetails(error),
     });
   }
 });
@@ -345,7 +393,7 @@ app.post('/api/:resource', authenticate, requireAdmin, async (req, res) => {
   } catch (error) {
     res.status(500).json({
       message: 'Gagal menambah data di database.',
-      error: error.message,
+      error: errorDetails(error),
     });
   }
 });
@@ -358,7 +406,7 @@ app.put('/api/:resource/:id', authenticate, requireAdmin, async (req, res) => {
   } catch (error) {
     res.status(500).json({
       message: 'Gagal memperbarui data di database.',
-      error: error.message,
+      error: errorDetails(error),
     });
   }
 });
@@ -371,9 +419,18 @@ app.delete('/api/:resource/:id', authenticate, requireAdmin, async (req, res) =>
   } catch (error) {
     res.status(500).json({
       message: 'Gagal menghapus data dari database.',
-      error: error.message,
+      error: errorDetails(error),
     });
   }
+});
+
+app.use(express.static(frontendDirectory));
+app.use((req, res, next) => {
+  if (req.method === 'GET' && req.accepts('html')) {
+    return res.sendFile(path.join(frontendDirectory, 'index.html'));
+  }
+
+  return next();
 });
 
 async function startServer() {

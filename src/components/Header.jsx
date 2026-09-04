@@ -14,7 +14,7 @@ function Header({ halamanAktif }) {
 
                 <div>
                     <strong>{user.nama}</strong>
-                    <span>{user.role === "admin" ? "Administrator" : "Bos"}</span>
+                    <span>{user.role === "admin" ? "Admin" : "Bos"}</span>
                 </div>
                 <button className="logout-button" onClick={logout}>Keluar</button>
             </div>

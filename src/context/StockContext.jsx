@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useAuth } from "./AuthContext";
 
-const API_BASE = "http://localhost:3001";
+const API_BASE = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 
 async function fetchCollection(resource, token) {
   const response = await fetch(`${API_BASE}/api/${resource}`, {
