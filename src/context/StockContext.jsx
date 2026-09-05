@@ -140,9 +140,9 @@ export function StockProvider({ children }) {
     async function loadData() {
       try {
         const [barangResult, kategoriResult, supplierResult] = await Promise.all([
-          fetchCollection("barang"),
-          fetchCollection("kategori"),
-          fetchCollection("supplier"),
+          fetchCollection("barang", token),
+          fetchCollection("kategori", token),
+          fetchCollection("supplier", token),
         ]);
 
         if (!ignore) {
