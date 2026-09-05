@@ -1,7 +1,4 @@
-import { useState } from "react";
-
-function Sidebar({ halamanAktif, setHalamanAktif }) {
-    const [menuTerbuka, setMenuTerbuka] = useState(false);
+function Sidebar({ halamanAktif, setHalamanAktif, menuTerbuka, tutupMenu }) {
 
     const menu = [
         {
@@ -31,7 +28,22 @@ function Sidebar({ halamanAktif, setHalamanAktif }) {
     ];
 
     return (
-        <aside className="sidebar">
+        <>
+        <button
+            className={menuTerbuka ? "drawer-backdrop visible" : "drawer-backdrop"}
+            type="button"
+            aria-label="Tutup menu navigasi"
+            onClick={tutupMenu}
+        />
+        <aside className={menuTerbuka ? "sidebar drawer-open" : "sidebar"}>
+            <button
+                className="drawer-close"
+                type="button"
+                aria-label="Tutup menu navigasi"
+                onClick={tutupMenu}
+            >
+                ×
+            </button>
             <div className="logo">
                 <div className="logo-icon">S</div>
 
@@ -40,17 +52,7 @@ function Sidebar({ halamanAktif, setHalamanAktif }) {
                     <span>Warehouse System</span>
                 </div>
             </div>
-            <button
-                className="menu-toggle"
-                type="button"
-                aria-expanded={menuTerbuka}
-                onClick={() => setMenuTerbuka((terbuka) => !terbuka)}
-            >
-                <span>Menu Navigasi</span>
-                <span aria-hidden="true">{menuTerbuka ? "▲" : "▼"}</span>
-            </button>
-
-            <nav className={menuTerbuka ? "menu menu-open" : "menu"}>
+            <nav className="menu">
                 {menu.map((item) => (
                     <button
                         key={item.nama}
@@ -61,7 +63,7 @@ function Sidebar({ halamanAktif, setHalamanAktif }) {
                         }
                         onClick={() => {
                             setHalamanAktif(item.nama);
-                            setMenuTerbuka(false);
+                            tutupMenu();
                         }}
                     >
                         <span>{item.icon}</span>
@@ -75,6 +77,7 @@ function Sidebar({ halamanAktif, setHalamanAktif }) {
                 <small>Warehouse Management</small>
             </div>
         </aside>
+        </>
     );
 
 }

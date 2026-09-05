@@ -16,6 +16,7 @@ function App() {
   const { user } = useAuth();
   const [halamanAktif, setHalamanAktif] =
     useState("Dashboard");
+  const [menuTerbuka, setMenuTerbuka] = useState(false);
 
   if (!user) {
     return <Login />;
@@ -51,10 +52,15 @@ function App() {
       <Sidebar
         halamanAktif={halamanAktif}
         setHalamanAktif={setHalamanAktif}
+        menuTerbuka={menuTerbuka}
+        tutupMenu={() => setMenuTerbuka(false)}
       />
 
       <main className="main-content">
-        <Header halamanAktif={halamanAktif} />
+        <Header
+          halamanAktif={halamanAktif}
+          bukaMenu={() => setMenuTerbuka(true)}
+        />
 
         <section className="content">
           {tampilkanHalaman()}
