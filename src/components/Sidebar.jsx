@@ -18,12 +18,12 @@ function Sidebar({ halamanAktif, setHalamanAktif, menuTerbuka, tutupMenu }) {
             icon: "⚠️",
         },
         {
-            nama: "Expired Date",
-            icon: "🗓️",
-        },
-        {
             nama: "Supplier",
             icon: "🚚",
+        },
+        {
+            nama: "Expired Date",
+            icon: "🗓️",
         },
     ];
 
