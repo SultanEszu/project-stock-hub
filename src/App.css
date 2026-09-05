@@ -1074,11 +1074,13 @@ tbody tr:hover {
   }
 
   .menu {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 6px;
     margin-top: 14px;
   }
 
   .menu-item {
+    flex-direction: column;
     gap: 6px;
     padding: 10px 4px;
     font-size: 11px;
@@ -1093,6 +1095,7 @@ tbody tr:hover {
 
   .header > div:first-child {
     flex: 1 1 100%;
+    text-align: center;
   }
 
   .header-user {
@@ -1107,6 +1110,11 @@ tbody tr:hover {
 
   .page-header h2 {
     font-size: 20px;
+  }
+
+  .page-header {
+    align-items: center;
+    text-align: center;
   }
 
   .stat-card {
