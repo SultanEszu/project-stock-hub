@@ -1,4 +1,8 @@
+import { useState } from "react";
+
 function Sidebar({ halamanAktif, setHalamanAktif }) {
+    const [menuTerbuka, setMenuTerbuka] = useState(false);
+
     const menu = [
         {
             nama: "Dashboard",
@@ -36,7 +40,17 @@ function Sidebar({ halamanAktif, setHalamanAktif }) {
                     <span>Warehouse System</span>
                 </div>
             </div>
-            <nav className="menu">
+            <button
+                className="menu-toggle"
+                type="button"
+                aria-expanded={menuTerbuka}
+                onClick={() => setMenuTerbuka((terbuka) => !terbuka)}
+            >
+                <span>Menu Navigasi</span>
+                <span aria-hidden="true">{menuTerbuka ? "▲" : "▼"}</span>
+            </button>
+
+            <nav className={menuTerbuka ? "menu menu-open" : "menu"}>
                 {menu.map((item) => (
                     <button
                         key={item.nama}
@@ -45,7 +59,10 @@ function Sidebar({ halamanAktif, setHalamanAktif }) {
                                 ? "menu-item active"
                                 : "menu-item"
                         }
-                        onClick={() => setHalamanAktif(item.nama)}
+                        onClick={() => {
+                            setHalamanAktif(item.nama);
+                            setMenuTerbuka(false);
+                        }}
                     >
                         <span>{item.icon}</span>
                         {item.nama}
