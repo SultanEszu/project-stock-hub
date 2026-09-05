@@ -957,3 +957,113 @@ tbody tr:hover {
   font-size: 12px;
   font-weight: 600;
 }
+
+/* MOBILE LAYOUT */
+
+.page {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  html,
+  body,
+  #root {
+    width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  .app {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    position: relative;
+    top: auto;
+    width: 100%;
+    min-height: auto;
+    padding: 14px 12px;
+    order: 0;
+  }
+
+  .main-content {
+    width: 100%;
+    min-width: 0;
+    order: 1;
+  }
+
+  .logo {
+    justify-content: center;
+    padding: 0 0 16px;
+  }
+
+  .logo > div:last-child,
+  .sidebar-footer {
+    display: none;
+  }
+
+  .menu {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .menu-item {
+    min-width: 0;
+    justify-content: center;
+    padding: 11px 8px;
+    text-align: center;
+    font-size: 12px;
+  }
+
+  .menu-item:hover {
+    transform: none;
+  }
+
+  .header {
+    width: 100%;
+    padding: 16px;
+  }
+
+  .header > div:first-child {
+    min-width: 0;
+  }
+
+  .header h1 {
+    font-size: 20px;
+  }
+
+  .header-user {
+    max-width: 100%;
+    padding: 6px 9px;
+  }
+
+  .content {
+    width: 100%;
+    padding: 20px 14px 28px;
+  }
+
+  .page-header {
+    width: 100%;
+  }
+
+  .stats-grid,
+  .dashboard-grid,
+  .category-grid {
+    width: 100%;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-card {
+    width: 100%;
+  }
+}
