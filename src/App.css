@@ -1067,3 +1067,49 @@ tbody tr:hover {
     width: 100%;
   }
 }
+
+@media (max-width: 480px) {
+  .sidebar {
+    padding: 12px 10px;
+  }
+
+  .menu {
+    gap: 6px;
+    margin-top: 14px;
+  }
+
+  .menu-item {
+    gap: 6px;
+    padding: 10px 4px;
+    font-size: 11px;
+    line-height: 1.2;
+  }
+
+  .header {
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px 14px;
+  }
+
+  .header > div:first-child {
+    flex: 1 1 100%;
+  }
+
+  .header-user {
+    width: 100%;
+    justify-content: flex-start;
+    border-radius: 18px;
+  }
+
+  .content {
+    padding: 18px 12px 26px;
+  }
+
+  .page-header h2 {
+    font-size: 20px;
+  }
+
+  .stat-card {
+    padding: 18px;
+  }
+}
