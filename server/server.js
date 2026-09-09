@@ -165,6 +165,25 @@ async function ensureDatabase() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
 
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS stock_logs (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        barang_id BIGINT UNSIGNED NOT NULL,
+        kode VARCHAR(100) NOT NULL,
+        nama_barang VARCHAR(255) NOT NULL,
+        stok_sebelum INT NOT NULL,
+        stok_sesudah INT NOT NULL,
+        perubahan INT NOT NULL,
+        alasan VARCHAR(100) NOT NULL,
+        user_id BIGINT UNSIGNED DEFAULT NULL,
+        user_nama VARCHAR(150) NOT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        INDEX idx_stock_logs_barang_id (barang_id),
+        INDEX idx_stock_logs_created_at (created_at)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+
     const defaultUsers = [
       {
         username: process.env.ADMIN_USERNAME || 'admin',
@@ -266,7 +285,7 @@ function normalizeRow(resource, item = {}) {
   return normalized;
 }
 
-async function createRow(resource, payload) {
+async function createRow(resource, payload, user) {
   const config = resourceConfig[resource];
   const item = normalizeRow(resource, payload);
 
@@ -284,6 +303,26 @@ async function createRow(resource, payload) {
     );
 
     const inserted = { ...item, id: result.insertId };
+
+    if (resource === 'barang' && Number(item.stok) !== 0) {
+      await connection.query(
+        `INSERT INTO stock_logs
+          (barang_id, kode, nama_barang, stok_sebelum, stok_sesudah, perubahan, alasan, user_id, user_nama)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          result.insertId,
+          item.kode,
+          item.nama,
+          0,
+          Number(item.stok),
+          Number(item.stok),
+          payload.stockChangeReason || 'stok awal',
+          user.id,
+          user.nama,
+        ]
+      );
+    }
+
     await connection.commit();
     return inserted;
   } catch (error) {
@@ -294,7 +333,7 @@ async function createRow(resource, payload) {
   }
 }
 
-async function updateRow(resource, id, payload) {
+async function updateRow(resource, id, payload, user) {
   const config = resourceConfig[resource];
   const item = normalizeRow(resource, payload);
   const updates = config.columns
@@ -309,10 +348,45 @@ async function updateRow(resource, id, payload) {
 
   try {
     await connection.beginTransaction();
+    const [previousRows] = await connection.query(
+      `SELECT * FROM \`${config.table}\` WHERE id = ? FOR UPDATE`,
+      [Number(id)]
+    );
+
+    if (!previousRows[0]) {
+      throw new Error('Data tidak ditemukan.');
+    }
+
+    const previous = previousRows[0];
+    const stockChanged = resource === 'barang' && Number(previous.stok) !== Number(item.stok);
+
+    if (stockChanged && !String(payload.stockChangeReason || '').trim()) {
+      throw new Error('Alasan perubahan stok wajib diisi.');
+    }
+
     await connection.query(
       `UPDATE \`${config.table}\` SET ${updates.join(', ')} WHERE id = ?`,
       [...values, Number(id)]
     );
+
+    if (stockChanged) {
+      await connection.query(
+        `INSERT INTO stock_logs
+          (barang_id, kode, nama_barang, stok_sebelum, stok_sesudah, perubahan, alasan, user_id, user_nama)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          Number(id),
+          item.kode,
+          item.nama,
+          Number(previous.stok),
+          Number(item.stok),
+          Number(item.stok) - Number(previous.stok),
+          String(payload.stockChangeReason).trim(),
+          user.id,
+          user.nama,
+        ]
+      );
+    }
 
     const [rows] = await connection.query(`SELECT * FROM \`${config.table}\` WHERE id = ?`, [Number(id)]);
     await connection.commit();
@@ -372,6 +446,23 @@ app.post('/api/auth/login', loginLimiter, async (req, res) => {
   }
 });
 
+app.get('/api/stock-logs', authenticate, async (_, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT id, barang_id, kode, nama_barang, stok_sebelum, stok_sesudah,
+             perubahan, alasan, user_id, user_nama, created_at
+      FROM stock_logs
+      ORDER BY created_at DESC, id DESC
+    `);
+    res.json(rows);
+  } catch (error) {
+    res.status(500).json({
+      message: 'Gagal mengambil riwayat stok dari database.',
+      error: errorDetails(error),
+    });
+  }
+});
+
 app.get('/api/:resource', authenticate, async (req, res) => {
   try {
     const { resource } = req.params;
@@ -388,7 +479,7 @@ app.get('/api/:resource', authenticate, async (req, res) => {
 app.post('/api/:resource', authenticate, requireAdmin, async (req, res) => {
   try {
     const { resource } = req.params;
-    const result = await createRow(resource, req.body || {});
+    const result = await createRow(resource, req.body || {}, req.user);
     res.status(201).json(result);
   } catch (error) {
     res.status(500).json({
@@ -401,7 +492,7 @@ app.post('/api/:resource', authenticate, requireAdmin, async (req, res) => {
 app.put('/api/:resource/:id', authenticate, requireAdmin, async (req, res) => {
   try {
     const { resource, id } = req.params;
-    const result = await updateRow(resource, id, req.body || {});
+    const result = await updateRow(resource, id, req.body || {}, req.user);
     res.json(result);
   } catch (error) {
     res.status(500).json({

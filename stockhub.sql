@@ -107,6 +107,24 @@ CREATE TABLE `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- Table structure for table `stock_logs`
+--
+
+CREATE TABLE `stock_logs` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `barang_id` bigint(20) UNSIGNED NOT NULL,
+  `kode` varchar(100) NOT NULL,
+  `nama_barang` varchar(255) NOT NULL,
+  `stok_sebelum` int(11) NOT NULL,
+  `stok_sesudah` int(11) NOT NULL,
+  `perubahan` int(11) NOT NULL,
+  `alasan` varchar(100) NOT NULL,
+  `user_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `user_nama` varchar(150) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
 -- Dumping data for table `users`
 --
 
@@ -144,6 +162,14 @@ ALTER TABLE `users`
   ADD UNIQUE KEY `username` (`username`);
 
 --
+-- Indexes for table `stock_logs`
+--
+ALTER TABLE `stock_logs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_stock_logs_barang_id` (`barang_id`),
+  ADD KEY `idx_stock_logs_created_at` (`created_at`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -170,6 +196,12 @@ ALTER TABLE `supplier`
 --
 ALTER TABLE `users`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
+-- AUTO_INCREMENT for dumped table `stock_logs`
+--
+ALTER TABLE `stock_logs`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

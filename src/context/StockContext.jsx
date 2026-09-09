@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { useAuth } from "./AuthContext";
 
 const API_BASE = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
@@ -69,6 +69,7 @@ export function StockProvider({ children }) {
   const [barang, setBarang] = useState([]);
   const [kategori, setKategori] = useState([]);
   const [supplier, setSupplier] = useState([]);
+  const [stockLogs, setStockLogs] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const refreshData = async () => {
@@ -82,6 +83,12 @@ export function StockProvider({ children }) {
     setKategori(kategoriResult);
     setSupplier(supplierResult);
   };
+
+  const refreshStockLogs = useCallback(async () => {
+    const result = await fetchCollection("stock-logs", token);
+    setStockLogs(result);
+    return result;
+  }, [token]);
 
   const addBarang = async (item) => {
     const saved = await createItem("barang", item, token);
@@ -138,6 +145,13 @@ export function StockProvider({ children }) {
     let ignore = false;
 
     async function loadData() {
+      if (!token) {
+        if (!ignore) {
+          setLoading(false);
+        }
+        return;
+      }
+
       try {
         const [barangResult, kategoriResult, supplierResult] = await Promise.all([
           fetchCollection("barang", token),
@@ -175,6 +189,8 @@ export function StockProvider({ children }) {
         setKategori,
         supplier,
         setSupplier,
+        stockLogs,
+        refreshStockLogs,
         loading,
         refreshData,
         addBarang,

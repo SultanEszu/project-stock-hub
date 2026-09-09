@@ -25,6 +25,10 @@ function Sidebar({ halamanAktif, setHalamanAktif, menuTerbuka, tutupMenu }) {
             nama: "Expired Date",
             icon: "🗓️",
         },
+        {
+            nama: "Riwayat Stok",
+            icon: "🧾",
+        },
     ];
 
     return (

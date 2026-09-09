@@ -3,12 +3,13 @@ import "./App.css";
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
 
-import Dashboard from "./pages/Dashboard";
-import Barang from "./pages/Barang";
-import Kategori from "./pages/Kategori";
+import Dashboard from "./pages/dashboard";
+import Barang from "./pages/barang";
+import Kategori from "./pages/kategori";
 import LowStock from "./pages/LowStock";
-import Expired from "./pages/Expired";
-import Supplier from "./pages/Supplier";
+import Expired from "./pages/expired";
+import Supplier from "./pages/supplier";
+import StockLog from "./pages/stockLog";
 import Login from "./components/Login";
 import { useAuth } from "./context/AuthContext";
 
@@ -16,7 +17,6 @@ function App() {
   const { user } = useAuth();
   const [halamanAktif, setHalamanAktif] =
     useState("Dashboard");
-  const [menuTerbuka, setMenuTerbuka] = useState(false);
 
   if (!user) {
     return <Login />;
@@ -42,6 +42,9 @@ function App() {
       case "Supplier":
         return <Supplier />;
 
+      case "Riwayat Stok":
+        return <StockLog />;
+
       default:
         return <Dashboard />;
     }
@@ -52,15 +55,10 @@ function App() {
       <Sidebar
         halamanAktif={halamanAktif}
         setHalamanAktif={setHalamanAktif}
-        menuTerbuka={menuTerbuka}
-        tutupMenu={() => setMenuTerbuka(false)}
       />
 
       <main className="main-content">
-        <Header
-          halamanAktif={halamanAktif}
-          bukaMenu={() => setMenuTerbuka(true)}
-        />
+        <Header halamanAktif={halamanAktif} />
 
         <section className="content">
           {tampilkanHalaman()}

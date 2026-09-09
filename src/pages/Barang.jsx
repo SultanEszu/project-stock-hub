@@ -10,6 +10,7 @@ const defaultForm = {
   satuan: "",
   minimumStok: "",
   supplier: "",
+  stockChangeReason: "restok",
   expiredDate: "",
   rak: "",
   catatan: "",
@@ -122,6 +123,8 @@ function Barang() {
 
       supplier: form.supplier,
 
+      stockChangeReason: form.stockChangeReason,
+
       expiredDate: form.expiredDate || null,
 
       rak: form.rak,
@@ -160,6 +163,7 @@ function Barang() {
       satuan: item.satuan || "",
       minimumStok: item.minimumStok ?? "",
       supplier: item.supplier || "",
+      stockChangeReason: "opname",
       expiredDate: item.expiredDate || "",
       rak: item.rak || "",
       catatan: item.catatan || "",
@@ -585,6 +589,26 @@ function Barang() {
             <div className="form-group">
 
               <label>
+                Alasan Perubahan Stok
+              </label>
+
+              <select
+                name="stockChangeReason"
+                value={form.stockChangeReason}
+                onChange={handleChange}
+              >
+                <option value="restok">Restok</option>
+                <option value="terjual">Terjual</option>
+                <option value="rusak">Rusak</option>
+                <option value="opname">Opname</option>
+              </select>
+
+            </div>
+
+
+            <div className="form-group">
+
+              <label>
                 Expired Date
               </label>
 
@@ -741,10 +765,6 @@ function Barang() {
                           <strong>
                             {item.nama}
                           </strong>
-
-                          <small>
-                            {item.supplier}
-                          </small>
 
                         </div>
 
